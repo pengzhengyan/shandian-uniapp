@@ -1,0 +1,29 @@
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100rpx;
+  font-size: $sd-font-size-lg;
+  font-weight: $sd-font-weight-lg;
+  border-radius: 72rpx;
+  color: #fff;
+
+  .icon {
+    font-size: 40rpx;
+    margin-right: 6rpx;
+  }
+}
+
+.phone {
+  background-color: $sd-bg-color-main;
+}
+
+.sd-card {
+  padding: 25rpx;
+  width: 100%;
+  min-height: 100rpx;
+  background-color: white;
+  border-radius: 10rpx;
+}
