@@ -1,43 +1,100 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useMemberStore } from '@/stores'
+import { getUserInfoAPI, postUpdataUserInfoAPI, postUpdateWxPhoneAPI } from '@/services/profile'
+import type { ProfileDetail } from '@/types/mumber'
+import { onLoad } from '@dcloudio/uni-app'
+
 
 // import { uni } from '@dcloudio/uni-h5';
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 const safeBottom = safeAreaInsets!.bottom + 20
+const memberStore = useMemberStore()
 
-// 设置头像
-const avatarUrl = ref(`https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0`)
+// 获取个人信息
+const profile = ref<ProfileDetail>()
+const getUserInfoData = async () => {
+  const res = await getUserInfoAPI()
+  profile.value = res.result
+}
 
+onLoad(() => {
+  getUserInfoData()
+})
+
+// 更新头像
 const onChooseavatar = (e: UniHelper.ButtonOnChooseavatarEvent) => {
-  avatarUrl.value = e.detail.avatarUrl
-  // console.log(e)
+  if (e.detail.avatarUrl) {
+    // 文件上传
+    uni.uploadFile({
+      url: '/my/update/avatar',
+      name: 'file',
+      filePath: e.detail.avatarUrl,
+      formData: { name: 'avatar' },
+      success: (res) => {
+        // 把头像更新到store
+        if (res.statusCode === 200) {
+          const avatar = JSON.parse(res.data).result.avatar
+          profile.value!.avatar = avatar
+          memberStore.profile!.avatar = avatar
+        } else {
+          uni.showToast({ icon: 'error', title: '获取图片失败' })
+        }
+      },
+    })
+  }
 }
 
 // 设置昵称
-const nickname = ref('微信用户')
 const bindinput: UniHelper.InputOnInput = (ev) => {
-  console.log(ev.detail.value)
+  // 如果输入内容为空白，则直接返回
+  if (!ev.target?.value) return
+  postUpdataUserInfoAPI({ nickname: ev.detail.value })
+    .then(res => {
+      if (res.code !== '0') return uni.showToast({ icon: 'error', title: '更新昵称失败' })
+      profile.value!.nickname = ev.detail.value
+      // 同步到store
+      memberStore.profile!.nickname = ev.detail.value
+    })
+    .catch(err => {
+      uni.showToast({ icon: 'error', title: err })
+    })
 }
 
 // 获取手机
-const phoneNumber = ref('')
-const onGetphonenumberSimple: UniHelper.ButtonOnGetphonenumber = (ev) => {
-  if (ev.detail.errMsg) {
-    uni.showToast({
-      icon: 'none', title: `个人开发者无法获取手机`
-    })
-    // 模拟一个手机号
-    phoneNumber.value = '137****9083'
-    return
+const onGetphonenumber: UniHelper.ButtonOnGetphonenumber = async (ev) => {
+  const phoneCode = ev.detail.code
+  const res = await postUpdateWxPhoneAPI(phoneCode!)
+  if (res.code === '0') {
+    memberStore.profile!.phone = res.result.phone!
+    profile.value!.phone = res.result.phone
+    uni.showToast({ icon: 'success', title: res.msg })
+  } else {
+    uni.showToast({ icon: 'fail', title: '更新号码失败' })
+    console.log(res.msg)
   }
+}
+
+// 设置公司
+const updateCompany: UniHelper.InputOnInput = (ev) => {
+  // 如果输入内容为空白，则直接返回
+  if (!ev.target?.value) return
+  const company = ev.detail.value
+  console.log(company)
+  postUpdataUserInfoAPI({ company })
+    .then(res => {
+      if (res.code !== '0') return uni.showToast({ icon: 'error', title: '更新公司失败' })
+      profile.value!.company = ev.detail.value
+    })
+    .catch(err => {
+      uni.showToast({ icon: 'error', title: err })
+    })
 }
 
 // 退出登录
 const logout = () => {
   // 清除缓存的profile
-  const memberStore = useMemberStore()
   memberStore.clearProfile()
 
   // 跳到登录页
@@ -56,8 +113,11 @@ const logout = () => {
                 @chooseavatar="onChooseavatar">
           <view class="inner">
             <text>头像</text>
-            <view class="avatar"
-                  :style="{ backgroundImage: `url(${avatarUrl})` }"></view>
+            <!-- <view class="avatar"
+                  :style="{ backgroundImage: `url(${avatarUrl})` }"></view> -->
+            <image class="avatar"
+                   :src="profile?.avatar"
+                   mode="aspectFit"></image>
           </view>
         </button>
         <button hover-class="none"
@@ -65,18 +125,28 @@ const logout = () => {
           <view class="inner">
             <text>用户名</text>
             <input type="nickname"
-                   @input="bindinput"
+                   @blur="bindinput"
                    class="nickname"
-                   :value="nickname">
+                   :value="profile?.nickname || profile?.account">
           </view>
         </button>
         <button hover-class="none"
                 class="item arrow"
                 open-type="getPhoneNumber"
-                @getphonenumber="onGetphonenumberSimple">
+                @getphonenumber="onGetphonenumber">
           <view class="inner">
-            <text>关联手机</text>
-            <text>{{ phoneNumber }}</text>
+            <text>我的手机</text>
+            <text>{{ profile?.phone }}</text>
+          </view>
+        </button>
+        <button hover-class="none"
+                class="item arrow">
+          <view class="inner">
+            <text>我的公司</text>
+            <input @blur="updateCompany"
+                   type="text"
+                   class="nickname"
+                   :value="profile?.company">
           </view>
         </button>
         <button hover-class="none"
@@ -188,7 +258,7 @@ const logout = () => {
 
   .logout {
     width: 100%;
-    height: 70rpx;
+    height: 80rpx;
     font-size: $sd-font-size-base;
   }
 }

@@ -1,8 +1,5 @@
 import { useMemberStore } from '@/stores'
-
-// 请求基地址
-const baseURL = 'https://pcapi-xiaotuxian-front-devtest.itheima.net'
-
+const baseURL = 'http://129.204.228.108:3007'
 // 拦截器配置
 const httpInterceptor = {
   // 拦截前触发
@@ -14,8 +11,13 @@ const httpInterceptor = {
     // 2. 请求超时
     options.timeout = 10000
     // 3. 添加小程序端请求头标识
+    // options.header = {
+    //   'source-client': 'miniapp',
+    //   ...options.header,
+    // }
+    // 3. 设置'Content-Type': 'application/x-www-form-urlencoded',
     options.header = {
-      'source-client': 'miniapp',
+      'Content-Type': 'application/x-www-form-urlencoded',
       ...options.header,
     }
     // 4. 添加 token 请求头标识

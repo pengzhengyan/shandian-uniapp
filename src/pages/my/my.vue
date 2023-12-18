@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import { useMemberStore } from '@/stores';
-import { ref } from 'vue';
 // 获取屏幕边界到安全区域距离
 const { safeAreaInsets } = uni.getSystemInfoSync()
 // 订单选项
 const orderTypes = [
   { type: 1, text: '待付款', icon: 'icon-currency' },
-  { type: 2, text: '待发货', icon: 'icon-gift' },
-  { type: 3, text: '待收货', icon: 'icon-check' },
+  { type: 2, text: '待审核', icon: 'icon-gift' },
+  { type: 3, text: '待完成', icon: 'icon-check' },
   { type: 4, text: '待评价', icon: 'icon-comment' },
 ]
-// 未登录时的头像
-const avatarUrl = ref(`https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0`)
 
 // 获取登录后的信息
 const memberStore = useMemberStore()
@@ -31,7 +28,7 @@ const memberStore = useMemberStore()
                    hover-class="none">
           <image class="avatar"
                  mode="aspectFill"
-                 :src="avatarUrl"></image>
+                 :src="memberStore.profile?.avatar"></image>
         </navigator>
         <view class="meta">
           <navigator url="/pagesMember/profile/profile"
@@ -51,8 +48,7 @@ const memberStore = useMemberStore()
         <navigator url="/pages/login/login"
                    hover-class="none">
           <image class="avatar gray"
-                 mode="aspectFill"
-                 src="https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0">
+                 mode="aspectFill">
           </image>
         </navigator>
         <view class="meta">
@@ -83,21 +79,23 @@ const memberStore = useMemberStore()
         <navigator class="navigator"
                    url="/pagesOrder/list/list?type=0"
                    hover-class="none">
-          查看全部订单<text class="icon-right"></text>
+          查看全部订单
+          <uni-icons type="right"
+                     color="gray"
+                     size="16" />
         </navigator>
       </view>
       <view class="section">
         <!-- 订单 -->
         <navigator v-for="item in orderTypes"
                    :key="item.type"
-                   :class="item.icon"
                    :url="`/pagesOrder/list/list?type=${item.type}`"
                    class="navigator"
                    hover-class="none">
           {{ item.text }}
         </navigator>
         <!-- 客服 -->
-        <button class="contact icon-handset"
+        <button class="contact"
                 open-type="contact">售后</button>
       </view>
     </view>
@@ -118,7 +116,7 @@ page {
 .viewport {
   height: 100%;
   background-repeat: no-repeat;
-  background-image: url(https://p.ipic.vip/entk0l.png);
+  background-image: url('~@/static/images/center_bg.png');
   background-size: 100% auto;
 }
 
@@ -143,6 +141,9 @@ page {
 
   .gray {
     filter: grayscale(100%);
+    background-image: url('~@/static/images/avatar-default.png');
+    background-size: 100% auto;
+    background-repeat: no-repeat;
   }
 
   .meta {
@@ -232,7 +233,7 @@ page {
       &::before {
         display: block;
         font-size: 60rpx;
-        color: #ff9545;
+        color: #52B465;
       }
     }
 

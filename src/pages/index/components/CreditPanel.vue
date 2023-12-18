@@ -1,3 +1,45 @@
+<script lang="ts" setup>
+import { useMemberStore } from '@/stores';
+import { computed } from 'vue';
+import { ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
+//
+defineProps<{
+  number: string
+}>()
+
+const memberStore = useMemberStore()
+// 按钮的文字
+const btnText = computed<string>(() => {
+  let text = '查看我的额度'
+  if (memberStore.step === 0) {
+    text = '查看我的额度'
+  } else if (memberStore.step === 1) {
+    text = '继续申请...'
+  } else if (memberStore.step === 2) {
+    text = '审核中...'
+  }
+  return text
+})
+const isChecked = ref(true)
+const onCheckboxChange = () => {
+  isChecked.value = !isChecked.value
+}
+const onVerify = () => {
+  if (!memberStore.profile) return uni.showToast({ icon: 'fail', title: '未登录' })
+
+  if (isChecked.value) {
+    uni.navigateTo({ url: '/pages/application/application' })
+  } else {
+    uni.showToast({ icon: 'fail', title: '请先勾选用户协议' })
+  }
+}
+const onOrder = () => {
+  console.log('暂未开放,走线下')
+}
+onLoad(() => { })
+</script>
+
 <template>
   <view class="banner">
     <view class="content">
@@ -7,7 +49,7 @@
       </view>
       <view class="sd-card card">
         <view class="title">
-          <text>{{ isQualified ? '当前可用额度' : '最高垫付额度' }}（元）</text>
+          <text>{{ memberStore.isQualified ? '当前可用额度' : '最高垫付额度' }}（元）</text>
         </view>
         <view class="big-number">
           <text>{{ number }}</text>
@@ -15,8 +57,12 @@
         <view class="sub-title">
           <text>年化利率6%，以最终审核为准</text>
         </view>
-        <button @tap="onSubmit"
-                class="button phone">{{ isQualified ? '垫资申请' : '查看我的额度' }}</button>
+        <button v-if="!memberStore.isQualified"
+                @tap="onVerify"
+                class="button phone">{{ btnText }}</button>
+        <button v-else
+                class="button phone"
+                @tap="onOrder">垫资申请</button>
         <view class="sub-title">
           <label @tap="onCheckboxChange">
             <checkbox :checked="isChecked" /> <text>确认并同意《隐私协议》</text>
@@ -27,23 +73,6 @@
     <view class="banner-bg"></view>
   </view>
 </template>
-
-<script lang="ts" setup>
-import { ref } from 'vue'
-//
-defineProps<{
-  isQualified: boolean
-  number: string
-}>()
-const isChecked = ref(false)
-const onCheckboxChange = () => {
-  isChecked.value = !isChecked.value
-}
-const onSubmit = () => {
-  uni.navigateTo({ url: '/pages/fileuploader/fileuploader' })
-  console.log(isChecked.value)
-}
-</script>
 
 <style lang="scss">
 .banner {

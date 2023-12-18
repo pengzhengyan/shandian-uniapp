@@ -1,33 +1,56 @@
 <script setup lang="ts">
-import { postLoginWxMinAPI, postLoginWxMinSimpleAPI } from '@/services/login';
-import { useMemberStore } from '@/stores';
-import type { LoginResult } from '@/types/mumber';
-import { onLoad } from '@dcloudio/uni-app';
+import { postLoginWxMinAPI, postLoginWxMinSimpleAPI } from '@/services/login'
+import { useMemberStore } from '@/stores'
+import type { LoginResult } from '@/types/mumber'
+import { onLoad } from '@dcloudio/uni-app'
+
 // #ifdef MP-WEIXIN
 //微信登录
 let code = ''
 // 通过微信获取手机号
 const onGetphonenumber: UniHelper.ButtonOnGetphonenumber = async (ev) => {
-  if (ev.detail.errMsg) return uni.showToast({
-    icon: 'none', title: `个人开发者无法获取手机`
-  })
-  const encryptedData = ev.detail.encryptedData
-  const iv = ev.detail.iv
-  const res = await postLoginWxMinAPI({ code, encryptedData, iv })
-  loginSucces(res.result)
+  if (code) {
+    const phoneCode = ev.detail.code
+    const res = await postLoginWxMinAPI({ code, phoneCode })
+    if (res.code !== '0') return uni.showToast({ title: '登录失败' })
+
+    if (ev.detail.errMsg) {
+      uni.showToast({
+        icon: 'none', title: `获取手机号失败`
+      })
+    } else {
+      // 更新手机号
+      const phoneCode = ev.detail.code
+    }
+
+    const result = res.result
+    loginSucces(result)
+  } else {
+    uni.showToast({ title: '获取code失败' })
+  }
 }
-// 通过微信获取手机号
+
+// 通过微信获取手机号-非正式版
 const onGetphonenumberSimple: UniHelper.ButtonOnGetphonenumber = async (ev) => {
-  const res = await postLoginWxMinSimpleAPI('13651415812')
-  loginSucces(res.result)
+  if (code) {
+    const res = await postLoginWxMinSimpleAPI({ code })
+    if (res.code !== '0') return uni.showToast({ title: '登录失败' })
+    const result = res.result
+    loginSucces(result)
+  } else {
+    uni.showToast({ title: '获取code失败' })
+  }
 }
 // #endif
 // 获取 code 登录凭证
-onLoad(async () => {
+const getCode = async () => {
   // #ifdef MP-WEIXIN
   const res = await wx.login()
   code = res.code
   // #endif
+}
+onLoad(() => {
+  getCode()
 })
 
 // 登录成功的处理方法
@@ -68,18 +91,17 @@ const loginSucces = (profile: LoginResult) => {
         手机号快捷登录
       </button>
       <!-- #endif-->
-      <view class="extra">
+      <!-- <view class="extra">
         <view class="caption">
           <text>其他登录方式</text>
         </view>
         <view class="options">
-          <!-- 通用模拟登录 -->
           <button open-type="getPhoneNumber"
                   @getphonenumber="onGetphonenumberSimple">
             <text class="icon icon-phone">模拟快捷登录</text>
           </button>
         </view>
-      </view>
+      </view> -->
       <view class="tips">登录/注册即视为你同意《服务条款》和《隐私协议》</view>
     </view>
   </view>

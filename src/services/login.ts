@@ -1,9 +1,8 @@
 import { http } from "@/utils/http"
 import type { LoginResult } from '@/types/mumber'
 type LoginWxMinParams = {
-  code: string
-  encryptedData?: string
-  iv?: string
+  code: string,
+  phoneCode?: string
 }
 
 /**
@@ -13,8 +12,8 @@ type LoginWxMinParams = {
 export const postLoginWxMinAPI = (data: LoginWxMinParams) => {
   return http<LoginResult>({
     method: 'POST',
-    url: '/login/wxMin',
-    data,
+    url: '/api/login/wxMin',
+    data
   })
 }
 
@@ -22,13 +21,11 @@ export const postLoginWxMinAPI = (data: LoginWxMinParams) => {
  * 小程序登录_内测版
  * @param phoneNumber
  */
-export const postLoginWxMinSimpleAPI = (phoneNumber: string) => {
+export const postLoginWxMinSimpleAPI = (data: LoginWxMinParams) => {
   return http<LoginResult>({
     method: 'POST',
-    url: '/login/wxMin/simple',
-    data: {
-      phoneNumber
-    }
+    url: '/api/login/wxMin/simple',
+    data
   })
 }
 

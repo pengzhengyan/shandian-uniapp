@@ -4,7 +4,6 @@ import CategPanel from './components/CategPanel.vue';
 import GuidePanel from './components/GuidePanel.vue';
 import AboutusPanel from './components/AboutusPanel.vue';
 
-//
 </script>
 
 <template>

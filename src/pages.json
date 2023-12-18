@@ -45,7 +45,7 @@
 			}
 		},
 		{
-			"path": "pages/fileuploader/fileuploader",
+			"path": "pages/application/application",
 			"style": {
 				"navigationBarTitleText": "资料提交",
         "navigationBarBackgroundColor": "#52B465",
