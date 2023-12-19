@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { postLoginWxMinAPI, postLoginWxMinSimpleAPI } from '@/services/login'
+import { postLoginWxMinAPI, postLoginWxMinSimpleAPI, postLoginH5API } from '@/services/login'
 import { useMemberStore } from '@/stores'
 import type { LoginResult } from '@/types/mumber'
 import { onLoad } from '@dcloudio/uni-app'
+import { ref } from 'vue'
 
-// #ifdef MP-WEIXIN
 //微信登录
+// #ifdef MP-WEIXIN
 let code = ''
 // 通过微信获取手机号
 const onGetphonenumber: UniHelper.ButtonOnGetphonenumber = async (ev) => {
@@ -41,18 +42,33 @@ const onGetphonenumberSimple: UniHelper.ButtonOnGetphonenumber = async (ev) => {
     uni.showToast({ title: '获取code失败' })
   }
 }
-// #endif
 // 获取 code 登录凭证
 const getCode = async () => {
-  // #ifdef MP-WEIXIN
   const res = await wx.login()
   code = res.code
-  // #endif
 }
 onLoad(() => {
   getCode()
 })
+// #endif
 
+// 网页端登录
+// #ifdef H5
+const account = ref<string>()
+const password = ref<string>()
+const onH5login = async () => {
+  const res = await postLoginH5API({
+    account: account.value!,
+    password: password.value!
+  })
+  if (res.code !== '0') {
+    console.log(res.msg)
+    return uni.showToast({ icon: 'error', title: '注册/登录失败' })
+  }
+  const result = res.result
+  loginSucces(result)
+}
+// #endif
 // 登录成功的处理方法
 const loginSucces = (profile: LoginResult) => {
   // 保存会员信息
@@ -66,20 +82,23 @@ const loginSucces = (profile: LoginResult) => {
 <template>
   <view class="viewport">
     <view class="logo">
-      <!-- <image src="https://pcapi-xiaotuxian-front-devtest.itheima.net/miniapp/images/logo_icon.png"></image> -->
-      <view class="image"></view>
+      <image src="http://129.204.228.108/uploads/shandianlogo.png"></image>
+      <!-- <view class="image"></view> -->
     </view>
     <view class="login">
       <!-- 网页端表单登录 -->
       <!-- #ifdef H5-->
       <input class="input"
              type="text"
+             v-model.trim="account"
              placeholder="请输入用户名/手机号码" />
       <input class="input"
              type="text"
              password
+             v-model.trim="password"
              placeholder="请输入密码" />
-      <button class="button phone">登录</button>
+      <button class="button phone"
+              @tap="onH5login">登录</button>
       <!-- #endif-->
 
       <!-- 小程序端授权登录 -->

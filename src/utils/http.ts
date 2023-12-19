@@ -1,5 +1,5 @@
 import { useMemberStore } from '@/stores'
-const baseURL = 'http://129.204.228.108:3007'
+const baseURL = 'http://129.204.228.108'
 // 拦截器配置
 const httpInterceptor = {
   // 拦截前触发
